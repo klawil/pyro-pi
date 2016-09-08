@@ -78,22 +78,34 @@ class pyropi:
             box_id = box_id + (pin_state * (2 ** index))
 
     def fire_pin(self, box, cue):
-        """Fire a certain pin and cue (if on this box)"""
-        # Check for the box matching
+        """Start a threaded function that fires the cue if needed"""
+        # Check for the box id
         if box != self.box_id:
             return 0
 
-        # Get the pin to be used
-        pin = self.GPIO_map[cue - 1]
+        # Get the pin to use
+        try:
+            pin = self.GPIO_map[cue - 1]
+        except:
+            self.log.info("Error Finding cue " + str(cue))
+            return false
 
         # Log that the pin is being fired
-        self.log.info("Fire " + str(box) + "-" + str(cue) + " (" + str(pin) + ")")
+        self.log.info("Fire " + str(box) + "-" + str(cue) + " (pin " + str(pin) + ")")
 
+        # Start the thread
+        firing_thread = threading.Thread(target=self._fire_pin, args=[pin])
+        firing_thread.start()
+
+    def _fire_pin(self, pin):
+        """Fire a certain pin"""
         # Exit if GPIO is not imported
         if not self.imported:
             return 0
 
         # Fire the pin
+        self.log.debug("Turning on " + str(pin))
         GPIO.output(pin, GPIO.LOW)
         time.sleep(0.1)
+        self.log.debug("Turning off " + str(pin))
         GPIO.output(pin, GPIO.HIGH)
