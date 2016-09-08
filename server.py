@@ -5,6 +5,7 @@ class pyropi_server:
     # General variable definitions
     port = 8000
     pi_boxes = []
+    pi_box_ids = []
     ip_base = None
     local_ip = None
     candc_ip = None
@@ -110,7 +111,7 @@ class pyropi_server:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.settimeout(1)
         sock.connect((self.candc_ip, self.port))
-        sock.send('add_me')
+        sock.send('add_me:' + str(self.pyropi.box_id))
         buffer = sock.recv(1024)
         sock.close()
 
@@ -196,6 +197,12 @@ class pyropi_server:
         elif ( command[0] == "add_me" ):
             # Add the server to the list of servers
             self.pi_boxes.append(address[0])
+
+            # Add the box id to the list of box id's
+            try:
+                self.pi_box_ids.index(int(command[1]))
+            except:
+                self.pi_box_ids.append(int(command[1]))
             return "Success"
         ## Signalling
         elif ( command[0] == "fire_cue" ):
@@ -207,6 +214,10 @@ class pyropi_server:
             # Fire a box and trigger
             self.pyropi.fire_pin(command[1], command[2])
             return "Success"
+        ## Info Commands
+        elif ( command[0] == "box_ids" ):
+            # Asking for a list of active box ids
+            return str(self.pi_box_ids)
 
         return "NotFound"
 
