@@ -115,6 +115,13 @@ class pyropi_server:
         buffer = sock.recv(1024)
         sock.close()
 
+        # Turn on the ready light
+        self.pyropi.ready()
+
+        # Blink the ready light 3 times if we are c&c
+        if self.candc_ip == self.local_ip:
+            self.pyropi.blink_ready(3)
+
     def test_candc_ip(self, IP):
         """Determines if an IP is the c&c server"""
         # Check for a c&c IP
