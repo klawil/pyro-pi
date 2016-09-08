@@ -8,6 +8,7 @@ class pyropi:
     power_pin = 19
     ready_pin = 26
     imported = True
+    ready = False
     box_id = 0
 
     def __init__(self):
@@ -112,3 +113,27 @@ class pyropi:
         time.sleep(0.1)
         self.log.debug("Turning off " + str(pin))
         GPIO.output(pin, GPIO.HIGH)
+
+    def ready(self):
+        """Turn on the ready light"""
+        if not self.imported:
+            return False
+
+        GPIO.output(self.ready_pin, GPIO.HIGH)
+        self.ready = True
+
+    def blink_ready(self, times):
+        """Blink the ready light a certain number of times"""
+        if not self.imported:
+            return False
+
+        index = 0;
+        while index < times:
+            index = index + 1
+            GPIO.output(self.ready_pin, GPIO.LOW)
+            time.sleep(0.5)
+            GPIO.output(self.ready_pin, GPIO.HIGH)
+            time.sleep(0.5)
+
+        if not self.ready:
+            GPIO.output(self.ready_pin, GPIO.LOW)
