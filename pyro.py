@@ -9,10 +9,12 @@ class pyropi:
     ready_pin = 26
     imported = True
     box_id = 0
-    logging.basicConfig(format='%(asctime)s %(levelname)s: %(name)s: %(message)s', level=logging.DEBUG, datefmt='%m/%d/%Y %I:%M:%S %p')
-    log = logging.getLogger('pyropi')
 
     def __init__(self):
+        # Set up logging
+        logging.basicConfig(format='%(asctime)s %(levelname)s: %(name)s: %(message)s', level=logging.DEBUG, datefmt='%m/%d/%Y %I:%M:%S %p')
+        self.log = logging.getLogger('pyropi')
+
         # Try to import the RPi GPIO library
         try:
             import RPi.GPIO as GPIO
@@ -25,6 +27,7 @@ class pyropi:
 
         # Get the box id for firing purposes
         self.get_box_id()
+        self.log.info('Box Id ' + str(self.box_id))
 
     def setup_pins(self):
         """"Set up the output and input pins and set their default values"""
@@ -80,12 +83,12 @@ class pyropi:
     def fire_pin(self, box, cue):
         """Start a threaded function that fires the cue if needed"""
         # Check for the box id
-        if box != self.box_id:
+        if int(box) != self.box_id:
             return 0
 
         # Get the pin to use
         try:
-            pin = self.GPIO_map[cue - 1]
+            pin = self.GPIO_map[int(cue) - 1]
         except:
             self.log.info("Error Finding cue " + str(cue))
             return false
