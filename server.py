@@ -284,7 +284,6 @@ class pyropi_server:
         sock.settimeout(0.5)
         sock.connect((IP, self.port))
         sock.send(command)
-        buffer = sock.recv(1024)
         sock.close()
 
     def run_script(self):
