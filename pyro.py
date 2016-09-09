@@ -24,12 +24,19 @@ class pyropi:
             self.log.info('Failed to import RPi.GPIO')
             self.imported = False
 
+        setup_thread = threading.Thread(target=self.setup)
+        setup_thread.start()
+
+    def setup(self):
+        """The setup function (used for threading)"""
         # Set up the pins
+        self.log.info("Setting up pins")
         self.setup_pins()
 
-        # Get the box id for firing purposes
+        # Get the box id
+        self.log.info("Getting box ID")
         self.get_box_id()
-        self.log.info('Box Id ' + str(self.box_id))
+        self.log.info("Box ID " + str(self.box_id))
 
     def setup_pins(self):
         """"Set up the output and input pins and set their default values"""
