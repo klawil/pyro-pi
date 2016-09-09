@@ -13,7 +13,7 @@ class pyropi:
 
     def __init__(self):
         # Set up logging
-        logging.basicConfig(format='%(asctime)s %(levelname)s: %(name)s: %(message)s', level=logging.DEBUG, datefmt='%m/%d/%Y %I:%M:%S %p')
+        logging.basicConfig(format='%(asctime)s %(levelname)s: %(name)s: %(message)s', level=logging.INFO, datefmt='%m/%d/%Y %I:%M:%S %p')
         self.log = logging.getLogger('pyropi')
 
         # Try to import the RPi GPIO library
