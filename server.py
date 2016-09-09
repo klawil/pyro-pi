@@ -43,6 +43,7 @@ class pyropi_server:
             self.local_ip = self.get_ip_from_if('wlan0')
             return
         except:
+            self.log.info('Failed to get wlan0 IP')
             pass
 
         # Try to get eth0
@@ -50,6 +51,7 @@ class pyropi_server:
             self.local_ip = self.get_ip_from_if('eth0')
             return
         except:
+            self.log.info('Failed to get eth0 IP')
             pass
 
         # Get the IP associated with the hostname
