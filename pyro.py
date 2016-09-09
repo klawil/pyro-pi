@@ -77,7 +77,7 @@ class pyropi:
             GPIO.setup(self.box_id_pins[index], GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
             # Read the state of the pin
-            pin_state = 1 - GPIO.input(self.box_id_pins[i])
+            pin_state = 1 - GPIO.input(self.box_id_pins[index])
 
             # Set the corresponding output pin
             GPIO.output(self.box_id_output[index], GPIO.HIGH if pin_state else GPIO.LOW)
