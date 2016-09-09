@@ -18,6 +18,7 @@ class pyropi:
 
         # Try to import the RPi GPIO library
         try:
+            global GPIO
             import RPi.GPIO as GPIO
         except:
             self.log.info('Failed to import RPi.GPIO')
@@ -35,6 +36,9 @@ class pyropi:
         # Exit if there is no RPi library
         if not self.imported:
             return 0
+
+        # Set the mode
+        GPIO.setmode(GPIO.BCM)
 
         # Set up the output LED's
         # Power
