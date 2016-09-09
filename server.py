@@ -10,6 +10,8 @@ class pyropi_server:
     local_ip = None
     candc_ip = None
     keep_server = True
+    scr_location = 'script.scr'
+    scr_file = None
 
     def __init__(self):
         # Set up logging
@@ -225,7 +227,35 @@ class pyropi_server:
         elif ( command[0] == "box_ids" ):
             # Asking for a list of active box ids
             return str(self.pi_box_ids)
+        ## Script building commands
+        elif ( command[0] == "start_script" ):
+            # Start building a new script
+            if ( self.scr_file != None ):
+                return "AlreadyOpen"
 
+            self.scr_file = open(self.scr_location, 'w')
+            return "Success"
+        elif ( command[0] == "add_cue" ):
+            # Add a cue and timing to the script file
+            # 1 - box, 2 - cue, 3 - ms from start
+            if ( self.scr_file == None ):
+                return "OpenFirst"
+
+            self.scr_file.write(':'.join(command[1:]) + '\n')
+            return "Success"
+        elif ( command[0] == "end_script" ):
+            # End recording of the script
+            if ( self.scr_file == None ):
+                return "NotOpen"
+
+            self.scr_file.close()
+            self.scr_file = None
+            return "Success"
+        elif ( command[0] == "trigger" ):
+            # Trigger the start of a script
+            script_thread = threading.Thread(target=self.run_script)
+            script_thread.start()
+            return "StartingScript"
         return "NotFound"
 
     def fire_all(self, command):
@@ -251,5 +281,45 @@ class pyropi_server:
         sock.send(command)
         buffer = sock.recv(1024)
         sock.close()
+
+    def run_script(self):
+        """Run a script and send all of the commands"""
+        # Read and parse the script
+        self.scr_file = open(self.scr_location)
+        script_array = []
+        for line in self.scr_file:
+            # Split the line on the colon
+            line = line.split(':')
+            # Parse each portion into an int
+            i = 0
+            while ( i < len(line) ):
+                line[i] = int(line[i])
+                i = i + 1
+            # Append a fired/not fired value
+            line.append(False)
+            # Append to the script array
+            script_array.append(line)
+        # Close the file
+        self.scr_file.close()
+        self.scr_file = None
+
+        # Run the script
+        in_script = True
+        start_time = time.time() * 1000
+        while in_script:
+            # Get the current time and reset in_script
+            offset = (time.time() * 1000) - start_time
+            in_script = False
+            # Loop through the cues looking for 1 to fire
+            for i, cue in enumerate(script_array):
+                if ( not cue[3] and offset >= cue[2] ):
+                    # Cue has not been fired and the offset is greater than the time to fire
+                    command = ('fire:' + str(cue[0]) + ':' + str(cue[1])).split(':')
+                    self.fire_all(command)
+                    script_array[i][3] = True
+                elif ( not cue[3] ):
+                    # Cue has not fired
+                    in_script = True
+        self.log.info('Finished Script')
 
 serv = pyropi_server()
