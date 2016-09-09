@@ -93,6 +93,9 @@ class pyropi:
             # Add to the box ID
             box_id = box_id + (pin_state * (2 ** index))
 
+            # Increment index
+            index = index + 1
+
     def fire_pin(self, box, cue):
         """Start a threaded function that fires the cue if needed"""
         # Check for the box id
