@@ -39,6 +39,7 @@ class pyropi:
 
         # Set the mode
         GPIO.setmode(GPIO.BCM)
+        GPIO.setwarnings(False)
 
         # Set up the output LED's
         # Power
