@@ -61,8 +61,11 @@ class pyropi_server:
         """Attempts to return the IP address associated with the given interface"""
         # Create the socket
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-        return socket.inet_ntoa(fcntl.ioctl(s.fileno(), 0x8915, stuct.pack('256s', ifname[:15]))[20:24])
+        return socket.inet_ntoa(fcntl.ioctl(
+            s.fileno(),
+            0x8915,  # SIOCGIFADDR
+            struct.pack('256s', ifname[:15])
+        )[20:24])
 
     def find_candc(self):
         """Look for the c&c server using multiple threads"""
