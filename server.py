@@ -166,7 +166,6 @@ class pyropi_server:
             # Save the c&c IP if there isn't already one saved and if the server gave one
             self.candc_ip = buffer
 
-        sock.send('exit')
         sock.close()
 
         return False
@@ -211,6 +210,12 @@ class pyropi_server:
         elif ( command[0] == "are_fire" ):
             # Ask if the server is a pyro-pi box
             return "1"
+        elif ( command[0] == "c+c" ):
+            # Ask for the c&c server
+            if ( self.candc_ip == None ):
+                return "none"
+            else:
+                return self.candc_ip
         elif ( command[0] == "add_me" ):
             # Add the server to the list of servers
             self.pi_boxes.append(address[0])
