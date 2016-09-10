@@ -208,6 +208,9 @@ class pyropi_server:
             # Exit the server
             self.keep_server = False
             return "Exiting"
+        elif ( command[0] == "are_fire" ):
+            # Ask if the server is a pyro-pi box
+            return "1"
         elif ( command[0] == "add_me" ):
             # Add the server to the list of servers
             self.pi_boxes.append(address[0])
