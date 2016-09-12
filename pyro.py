@@ -3,9 +3,8 @@ import logging, time, threading
 class pyropi:
     # General variable declaration
     GPIO_map = [14,15,18,23,24,25,8,7, 2,3,4,17,27,22,10,9]
-    box_id_pins = [16,20,21,12]
-    box_id_output = [11,5,6,13]
-    power_pin = 19
+    box_id_pins = [12,16,20,21]
+    box_id_output = [5,6,13,19]
     ready_pin = 26
     imported = True
     ready = False
@@ -49,9 +48,6 @@ class pyropi:
         GPIO.setwarnings(False)
 
         # Set up the output LED's
-        # Power
-        GPIO.setup(self.power_pin, GPIO.OUT)
-        GPIO.output(self.power_pin, GPIO.HIGH)
         # Ready
         GPIO.setup(self.ready_pin, GPIO.OUT)
         GPIO.output(self.ready_pin, GPIO.LOW)
