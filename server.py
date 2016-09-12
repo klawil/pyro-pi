@@ -208,8 +208,6 @@ class pyropi_server:
                     response = "Exception"
                 connection.send(response)
 
-            connection.close()
-
         # Kill the server socket
         server.close()
 
