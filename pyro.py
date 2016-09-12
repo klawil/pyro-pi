@@ -93,6 +93,8 @@ class pyropi:
             # Increment index
             index = index + 1
 
+        self.box_id = box_id
+
     def fire_pin(self, box, cue):
         """Start a threaded function that fires the cue if needed"""
         # Check for the box id
