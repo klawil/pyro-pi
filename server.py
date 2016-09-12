@@ -166,10 +166,6 @@ class pyropi_server:
             loop = loop + 1
 
         # See if the server knows who the c&c server is
-        sock.close()
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(1)
-        sock.connect((IP, self.port))
         sock.send('c+c')
         loop = 0
         while loop < 10:
