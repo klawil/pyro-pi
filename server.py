@@ -154,17 +154,34 @@ class pyropi_server:
         sock.connect((IP, self.port))
         sock.send('are_fire')
         loop = 0
-        buffer = sock.recv(64)
-        if ( len(buffer) == 0 or buffer != "1" ):
-            sock.close()
-            return False
+        while loop < 10:
+            buffer = sock.recv(64)
+            if ( (len(buffer) > 0 and buffer != "1") or loop >= 10 ):
+                self.log.info(IP + ' Not fire: ' + str(buffer))
+                sock.close()
+                return False
+            elif ( len(buffer) > 0 ):
+                self.log.info(IP + ' is fire')
+                break
+            loop = loop + 1
 
         # See if the server knows who the c&c server is
+        sock.close()
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1)
+        sock.connect((IP, self.port))
         sock.send('c+c')
-        buffer = sock.recv(64)
-        if ( len(buffer) != 0 and buffer != "none" and self.candc_ip == None ):
-            # Save the c&c IP if there isn't already one saved and if the server gave one
-            self.candc_ip = buffer
+        loop = 0
+        while loop < 10:
+            buffer = sock.recv(64)
+            if ( (len(buffer) > 0 and buffer == "none") or loop >= 10 ):
+                self.log.info(IP + ' c+c: ' + str(buffer))
+                break
+            elif ( len(buffer) > 0 ):
+                self.log.info(IP + ' c+c: ' + str(buffer))
+                self.candc_ip = buffer
+                break
+            loop = loop + 1
 
         sock.close()
 
