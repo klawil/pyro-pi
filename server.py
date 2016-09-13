@@ -175,6 +175,8 @@ class pyropi_server:
                 break
             elif ( len(buffer) > 0 ):
                 self.log.info(IP + ' c+c: ' + str(buffer))
+                if ( buffer == "me" ):
+                    buffer = IP
                 self.candc_ip = buffer
                 break
             loop = loop + 1
@@ -233,6 +235,8 @@ class pyropi_server:
             # Ask for the c&c server
             if ( self.candc_ip == None ):
                 return "none"
+            elif ( self.candc_ip == self.local_ip ):
+                return "me"
             else:
                 return self.candc_ip
         elif ( command[0] == "add_me" ):
