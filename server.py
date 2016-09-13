@@ -1,4 +1,4 @@
-import socket, threading, time, logging, fcntl, struct
+import socket, threading, time, logging, fcntl, struct, os
 from pyro import pyropi
 
 class pyropi_server:
@@ -217,6 +217,7 @@ class pyropi_server:
         if ( command[0] == "exit" ):
             # Exit the server
             self.keep_server = False
+            os.system("sudo shutdown -hP now")
             return "Exiting"
         elif ( command[0] == "are_fire" ):
             # Ask if the server is a pyro-pi box
