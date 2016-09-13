@@ -207,6 +207,10 @@ class pyropi_server:
         # Kill the server socket
         server.close()
 
+        # Shutdown the node
+        if self.pyropi.imported:
+            os.system("sudo shutdown -hP now")
+
         return False
 
     def parse_command(self, command, address):
@@ -216,8 +220,11 @@ class pyropi_server:
         ## Control Commands
         if ( command[0] == "exit" ):
             # Exit the server
-            self.keep_server = False
-            os.system("sudo shutdown -hP now")
+            if self.candc_ip == self.local_ip:
+                thread = threading.Thread(target=self.shutdown_all)
+                thread.start()
+            else:
+                self.keep_server = False
             return "Exiting"
         elif ( command[0] == "are_fire" ):
             # Ask if the server is a pyro-pi box
@@ -282,6 +289,23 @@ class pyropi_server:
             script_thread.start()
             return "StartingScript"
         return "NotFound"
+
+    def shutdown_all(self):
+        """Send the shutdown command to all of the other nodes"""
+        # Build the threads
+        threads = []
+        for IP in self.pi_boxes:
+            threads.append(threading.Thread(target=self._send_command, args=(IP, "exit")))
+
+        # Start the threads
+        for thread in threads:
+            thread.start()
+
+        # Wait for the threads to finish
+        for thread in threads:
+            thread.join()
+
+        self.keep_server = False
 
     def fire_all(self, command):
         """Start the threads to send a fire command to all boxes"""
