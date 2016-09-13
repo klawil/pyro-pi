@@ -166,6 +166,10 @@ class pyropi_server:
             loop = loop + 1
 
         # See if the server knows who the c&c server is
+        sock.close()
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1)
+        sock.connect((IP, self.port))
         sock.send('c+c')
         loop = 0
         while loop < 10:
@@ -299,7 +303,8 @@ class pyropi_server:
         # Build the threads
         threads = []
         for IP in self.pi_boxes:
-            threads.append(threading.Thread(target=self._send_command, args=(IP, "exit")))
+            if IP != self.local_ip:
+                threads.append(threading.Thread(target=self._send_command, args=(IP, "exit")))
 
         # Start the threads
         for thread in threads:
