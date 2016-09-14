@@ -155,8 +155,7 @@ class pyropi:
         self.log.info("Fire " + str(box) + "-" + str(cue) + " (pin " + str(pin) + ")")
 
         # Start the thread
-        firing_thread = threading.Thread(target=self._fire_pin, args=[pin])
-        firing_thread.start()
+        threading.Thread(target=self._fire_pin, args=[pin]).start()
 
     def _fire_pin(self, pin):
         """Fire a certain pin"""

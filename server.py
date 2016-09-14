@@ -29,12 +29,10 @@ class pyropi_server:
         self.pyropi = pyropi(self.port)
 
         # Start the server
-        server_thread = threading.Thread(target=self.run_server)
-        server_thread.start()
+        threading.Thread(target=self.run_server).start()
 
         # Kick off the thread that looks for the c&c server
-        candc_thread = threading.Thread(target=self.find_candc)
-        candc_thread.start()
+        threading.Thread(target=self.find_candc).start()
 
     def get_ip_addr(self):
         """Obtain the IP address to identify as"""
@@ -228,8 +226,7 @@ class pyropi_server:
             # Exit the server
             self.pyropi.keep_watching = False
             if self.candc_ip == self.local_ip:
-                thread = threading.Thread(target=self.shutdown_all)
-                thread.start()
+                threading.Thread(target=self.shutdown_all).start()
             else:
                 self.keep_server = False
             return "Exiting"
@@ -294,8 +291,7 @@ class pyropi_server:
             return "Success"
         elif ( command[0] == "trigger" ):
             # Trigger the start of a script
-            script_thread = threading.Thread(target=self.run_script)
-            script_thread.start()
+            threading.Thread(target=self.run_script).start()
             return "StartingScript"
         return "NotFound"
 
