@@ -26,7 +26,7 @@ class pyropi_server:
         self.ip_base = ".".join(self.local_ip.split(".")[:3]) + "."
 
         # Add a pyropi object
-        self.pyropi = pyropi()
+        self.pyropi = pyropi(self.port)
 
         # Start the server
         server_thread = threading.Thread(target=self.run_server)
@@ -226,6 +226,7 @@ class pyropi_server:
         ## Control Commands
         if ( command[0] == "exit" ):
             # Exit the server
+            self.pyropi.keep_watching = False
             if self.candc_ip == self.local_ip:
                 thread = threading.Thread(target=self.shutdown_all)
                 thread.start()

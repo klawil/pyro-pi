@@ -1,4 +1,4 @@
-import logging, time, threading
+import logging, time, threading, socket
 
 class pyropi:
     # General variable declaration
@@ -6,14 +6,21 @@ class pyropi:
     box_id_pins = [12,16,20,21]
     box_id_output = [5,6,13,19]
     ready_pin = 26
+    button_pin = 11
+    button_state = 1
+    keep_watching = True
     imported = True
     ready = False
     box_id = 0
+    port = None
 
-    def __init__(self):
+    def __init__(self, port):
         # Set up logging
         logging.basicConfig(format='%(asctime)s %(levelname)s: %(name)s: %(message)s', level=logging.INFO, datefmt='%m/%d/%Y %I:%M:%S %p')
         self.log = logging.getLogger('pyropi')
+
+        # Set up the port
+        self.port = port
 
         # Try to import the RPi GPIO library
         try:
@@ -23,14 +30,16 @@ class pyropi:
             self.log.info('Failed to import RPi.GPIO')
             self.imported = False
 
-        setup_thread = threading.Thread(target=self.setup)
-        setup_thread.start()
+        threading.Thread(target=self.setup).start()
 
     def setup(self):
         """The setup function (used for threading)"""
         # Set up the pins
         self.log.info("Setting up pins")
         self.setup_pins()
+
+        # Start the button watching script
+        threading.Thread(target=self.watch_button).start()
 
         # Get the box id
         self.log.info("Getting box ID")
@@ -47,10 +56,12 @@ class pyropi:
         GPIO.setmode(GPIO.BCM)
         GPIO.setwarnings(False)
 
-        # Set up the output LED's
-        # Ready
+        # Set up the ready LED
         GPIO.setup(self.ready_pin, GPIO.OUT)
         GPIO.output(self.ready_pin, GPIO.LOW)
+
+        # Set up the push button
+        GPIO.setup(self.button_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
         # Set up the box id input pins
         for pin in self.box_id_pins:
@@ -67,6 +78,41 @@ class pyropi:
             GPIO.setup(pin, GPIO.OUT)
             GPIO.output(pin, GPIO.HIGH)
 
+    def watch_button(self):
+        """Watches the button for pushes"""
+        # Check for GPIO library
+        if not self.imported:
+            return 0
+
+        # Watch the button
+        start_time = time.time()
+        while self.keep_watching:
+            # Get the buttons current state
+            current_state = GPIO.input(self.button_pin)
+            if current_state != self.button_state and current_state == 0:
+                # The button is pressed and wasn't last loop
+                start_time = time.time()
+            elif current_state != self.button_state and time.time() - start_time >= 1:
+                # The button was released and was held for longer than 1 second
+                # Shut down the server
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(0.5)
+                sock.connect(("127.0.0.1",self.port))
+                sock.send("exit")
+            elif current_state != self.button_state:
+                # The button was released and was help for less than 1 second
+                # Fire all of the cues in 1 second intervals
+                threading.Thread(target=self.fire_all_pins).start()
+
+            # Save the (possibly) new button state
+            self.button_state = current_state
+
+    def fire_all_pins(self):
+        """Fire all the pins in 1 second increment"""
+        for pin in self.GPIO_map:
+            time.sleep(1)
+            threading.Thread(target=self._fire_pin, args=[pin]).start()
+
     def get_box_id(self):
         """Return the ID of the box based on switch positions"""
         # Default to box id 0
@@ -77,9 +123,6 @@ class pyropi:
         index = 0
         box_id = 0
         while ( index < len(self.box_id_pins)):
-            # Set up the pin for input
-            GPIO.setup(self.box_id_pins[index], GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
             # Read the state of the pin
             pin_state = 1 - GPIO.input(self.box_id_pins[index])
             self.log.info('Pin ' + str(index) + ' (' + str(self.box_id_pins[index]) + '): ' + str(pin_state))
