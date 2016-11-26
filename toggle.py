@@ -70,7 +70,7 @@ def run(server_class=HTTPServer, handler_class=S, port=8000):
         GPIO.setwarnings(False)
 
         # Setup all the pins
-        for pin in self.GPIO_Pins:
+        for pin in GPIO_Pins:
             GPIO.setup(pin, GPIO.OUT)
             GPIO.output(pin, GPIO.HIGH)
     except:
