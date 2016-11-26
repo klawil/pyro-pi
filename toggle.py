@@ -65,6 +65,10 @@ def run(server_class=HTTPServer, handler_class=S, port=8000):
         import RPi.GPIO as GPIO
         GPIO_Imported = True
 
+        # Set up the correct mode
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setwarnings(False)
+
         # Setup all the pins
         for pin in self.GPIO_Pins:
             GPIO.setup(pin, GPIO.OUT)
