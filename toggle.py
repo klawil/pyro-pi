@@ -90,6 +90,8 @@ class xmaspi_server:
 
         self.states[channel] = state
 
+        GPIO.output(self.pins[channel], gpio_state)
+
         return {
             "success": True,
             "message": "",
