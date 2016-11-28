@@ -11,7 +11,7 @@ class S(BaseHTTPRequestHandler):
 
     def do_GET(self):
         self._set_headers()
-        self.wfile.write(json.dumps(GPIO_Pins))
+        self.wfile.write(json.dumps(xmaspi.states))
 
     def do_HEAD(self):
         self._set_headers()
@@ -25,67 +25,86 @@ class S(BaseHTTPRequestHandler):
         parsed_body = json.loads(post_body)
 
         # Get the pin to modify
-        pin = parsed_body.get('pin', False)
-        if pin == False or GPIO_Pins.get(pin, None) == None:
-            self.wfile.write(json.dumps({"success": False, "message": "Invalid pin provided", "pin": pin}))
-            return False
+        response_object = xmaspi.toggle(parsed_body.get('pin', None), parsed_body.get('state', False))
+        self.wfile.write(json.dumps(response_object))
 
-        # Get the state to set the pin to
-        state = parsed_body.get('state', False)
+class xmaspi_server:
+    # General variable definitions
+    port = 8000
+    pins = [7, 8, 25, 24, 23, 18, 15, 14]
+    states = []
+    imported = True
+
+    def __init__(self):
+        # Set up the logging
+        logging.basicConfig(format='%(asctime)s %(levelname)s: %(name)s: %(message)s', level=logging.INFO, datefmt='%m/%d/%Y %I:%M:%S %p')
+        self.log = logging.getLogger('xmaspi')
+
+        # Try to import the RPi GPIO library
+        try:
+            global GPIO
+            import RPi.GPIO as GPIO
+        except:
+            self.log.info('Failed to import RPi.GPIO')
+            self.imported = False
+
+        # Set up the GPIO general
+        if self.imported:
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setwarnings(False)
+
+        # Set up the channels
+        for pin in self.pins:
+            if self.imported:
+                GPIO.setup(pin, GPIO.OUT)
+                GPIO.output(pin, GPIO.LOW)
+            self.states.append(False)
+
+    def toggle(self, channel, state):
+        """Turn a channel on or off"""
+        # Check for the GPIO import
+        if not self.imported:
+            return {
+                "success": False,
+                "message": "RPi.GPIO is not imported"
+            }
+
+        # Check the channel
+        channel = int(channel)
+        if channel >= len(self.pins):
+            return {
+                "success": False,
+                "message": "Invalid channel"
+            }
+
+        # Check the state
         if state != False and state != True:
-            self.wfile.write(json.dumps({"success": False, "message": "Invalid state provided"}))
-            return False
-        elif state and GPIO_Imported:
+            return {
+                "success": False,
+                "message": "Invalid state"
+            }
+        elif state:
             gpio_state = GPIO.LOW
-        elif GPIO_Imported:
+        else:
             gpio_state = GPIO.HIGH
-        GPIO_Pins[pin] = state
 
-        if GPIO_Imported:
-            GPIO.output(pin, gpio_state)
+        self.states[channel] = state
 
-        # Doesn't do anything with posted data
-        self.wfile.write(json.dumps({"success": True}))
+        return {
+            "success": True,
+            "message": "",
+            "state": state,
+            "channel": channel
+        }
 
-def run(server_class=HTTPServer, handler_class=S, port=8000):
-    # Set up the logging
-    global xmas_log
-    logging.basicConfig(format='%(asctime)s %(levelname)s: %(name)s: %(message)s', level=logging.INFO, datefmt='%m/%d/%Y %I:%M:%S %p')
-    xmas_log = logging.getLogger('xmaspi')
-
-    # Set up the CPIO
-    global GPIO
-    global GPIO_Pins
-    GPIO_Pins = {14:False, 15:False, 18:False, 23:False, 24:False, 25:False, 8:False, 7:False}
-    global GPIO_States
-    GPIO_States = [False, False, False, False, False, False, False, False]
-    global GPIO_Imported
-    GPIO_Imported = False
-    try:
-        import RPi.GPIO as GPIO
-        GPIO_Imported = True
-
-        # Set up the correct mode
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setwarnings(False)
-
-        # Setup all the pins
-        for pin in GPIO_Pins:
-            GPIO.setup(pin, GPIO.OUT)
-            GPIO.output(pin, GPIO.HIGH)
-    except:
-        xmas_log.info("Failed to import RPi.GPIO")
-
-    # Start the server
-    server_address = ('', port)
-    httpd = server_class(server_address, handler_class)
-    xmas_log.info("Starting HTTPd")
-    httpd.serve_forever()
+    def run(self):
+        """Start the HTTP server"""
+        server_address = ("", self.port)
+        httpd = HTTPServer(server_address, S)
+        self.log.info("Starting HTTPd")
+        httpd.serve_forever()
 
 if __name__ == "__main__":
-    from sys import argv
-
-    if len(argv) == 2:
-        run(port=int(argv[1]))
-    else:
-        run()
+    global xmaspi
+    xmaspi = xmaspi_server()
+    xmaspi.run()
