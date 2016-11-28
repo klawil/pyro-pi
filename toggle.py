@@ -57,7 +57,7 @@ class xmaspi_server:
         for pin in self.pins:
             if self.imported:
                 GPIO.setup(pin, GPIO.OUT)
-                GPIO.output(pin, GPIO.LOW)
+                GPIO.output(pin, GPIO.HIGH)
             self.states.append(False)
 
     def toggle(self, channel, state):
