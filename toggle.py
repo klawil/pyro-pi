@@ -25,6 +25,7 @@ class S(BaseHTTPRequestHandler):
         parsed_body = json.loads(post_body)
 
         # Get the pin to modify
+        response_object = []
         for change in parsed_body:
             response_object.append(xmaspi.toggle(change.get('pin', None), change.get('state', False)))
 
